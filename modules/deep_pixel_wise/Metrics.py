@@ -1,7 +1,8 @@
 import torch
 import numpy
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = 'cpu'
 
 def predict(mask, label, threshold=0.5, score_type='combined'):
     with torch.no_grad():

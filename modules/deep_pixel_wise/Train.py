@@ -12,7 +12,8 @@ from Trainer import Trainer
 model = DeePixBiS()
 # model.load_state_dict(torch.load('./DeePixBiS.pth'))
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = 'cpu'
 print(device)
 
 loss_fn = PixWiseBCELoss()

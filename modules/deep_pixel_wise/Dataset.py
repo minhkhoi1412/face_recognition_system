@@ -43,5 +43,4 @@ class PixWiseDataset():
 
         labels = np.array(labels, dtype=np.float32)
 
-        dataset = [[images[i], masks[i], labels[i]] for i in range(len(images))]
-        return dataset
+        return [[images[i], masks[i], labels[i]] for i in range(len(images))]
