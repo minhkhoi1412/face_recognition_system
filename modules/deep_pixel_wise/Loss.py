@@ -12,5 +12,4 @@ class PixWiseBCELoss(nn.Module):
     def forward(self, net_mask, net_label, target_mask, target_label):
         pixel_loss = self.criterion(net_mask, target_mask)
         binary_loss = self.criterion(net_label, target_label)
-        loss = pixel_loss * self.beta + binary_loss * (1 - self.beta)
-        return loss
+        return pixel_loss * self.beta + binary_loss * (1 - self.beta)

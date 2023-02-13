@@ -4,7 +4,7 @@ from modules.deep_pixel_wise.Metrics import test_accuracy, test_loss
 
 
 class Trainer():
-    def __init__(self, train_dl, val_dl, model, epochs, opt, loss_fn, device='cpu'):
+    def __init__(self, train_dl, val_dl, model, epochs, opt, loss_fn, device):
         self.train_dl = train_dl
         self.val_dl = val_dl
         self.model = model.to(device)
@@ -31,8 +31,8 @@ class Trainer():
                 print(f'Loss : {loss}')
 
         # self.model.eval()
-        test_acc = test_accuracy(self.model, self.val_dl)
-        test_los = test_loss(self.model, self.val_dl, self.loss_fn)
+        test_acc = test_accuracy(self.model, self.val_dl, self.device)
+        test_los = test_loss(self.model, self.val_dl, self.loss_fn, self.device)
 
         print(f'Test Accuracy : {test_acc}  Test Loss : {test_los}')
         return test_acc, test_los

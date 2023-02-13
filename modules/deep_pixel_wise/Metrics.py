@@ -1,8 +1,6 @@
 import torch
 import numpy
 
-# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-device = 'cpu'
 
 def predict(mask, label, threshold=0.5, score_type='combined'):
     with torch.no_grad():
@@ -18,7 +16,7 @@ def predict(mask, label, threshold=0.5, score_type='combined'):
         return preds, score
 
 
-def test_accuracy(model, test_dl):
+def test_accuracy(model, test_dl, device):
     acc = 0
     total = len(test_dl.dataset)
     for img, mask, label in test_dl:
@@ -30,7 +28,7 @@ def test_accuracy(model, test_dl):
     return (acc / total) * 100
 
 
-def test_loss(model, test_dl, loss_fn):
+def test_loss(model, test_dl, loss_fn, device):
     loss = 0
     total = len(test_dl)
     for img, mask, label in test_dl:
