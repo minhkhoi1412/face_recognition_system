@@ -6,12 +6,16 @@ import numpy as np
 from Model import DeePixBiS
 from Loss import PixWiseBCELoss
 from Metrics import predict, test_accuracy, test_loss
+from facenet_pytorch import InceptionResnetV1, MTCNN
+import os
 
 
 model = DeePixBiS()
 model.load_state_dict(torch.load(
-    r'C:\KhoiNXM\Workspace\Learning\Master Thesis\Reference Sources\Face-Anti-Spoofing-DeePixBiS\DeePixBiS_celeb_nuaa_041222.pth', 
-    map_location=torch.device('cpu')))
+    r'C:\KhoiNXM\Workspace\Learning\Master Thesis\Dev\face_recognition_system\models\DeePixBiS\DeePixBiS_celeb_nuaa_130223.pth', 
+    map_location=torch.device('cuda'))
+)
+
 model.eval()
 
 tfms = transforms.Compose([
@@ -22,52 +26,50 @@ tfms = transforms.Compose([
     # transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 ])
 
-faceClassifier = cv.CascadeClassifier(r'C:\KhoiNXM\Workspace\Learning\Master Thesis\Dev\face_recognition_system\models\haar\haarface.xml')
+mtcnn = MTCNN(thresholds=[0.5, 0.7, 0.9],
+              post_process=False, keep_all=True, device='cuda')
 
 camera = cv.VideoCapture(0)
-
-# width = int(camera.get(cv.CAP_PROP_FRAME_WIDTH) + 0.5)
-# height = int(camera.get(cv.CAP_PROP_FRAME_HEIGHT) + 0.5)
-# size = (width, height)
-# fourcc = cv.VideoWriter_fourcc(*'XVID')
-# out = cv.VideoWriter('output_DeePixBiS.mp4', fourcc, 5.0, size)
-
 while cv.waitKey(1) & 0xFF != ord('q'):
     _, img = camera.read()
-    grey = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-    faces = faceClassifier.detectMultiScale(
-        grey, scaleFactor=1.1, minNeighbors=4)
+    boxes, _ = mtcnn.detect(img)
 
-    if faces is not None:
-        for x, y, w, h in faces:
-            faceRegion = img[y:y+h, x:x+w]
-            faceRegion = cv.cvtColor(faceRegion, cv.COLOR_BGR2RGB)
-            cv.imwrite('./test.png', faceRegion)
-            # cv.imshow('Test', faceRegion)
+    if boxes is not None:
+        boxes = boxes.astype('int').tolist()
 
-            faceRegion = tfms(faceRegion)
-            faceRegion = faceRegion.unsqueeze(0)
+        for bbox in boxes:
+            x, y, w, h = bbox[0], bbox[1], bbox[2], bbox[3]
+            if w - x <= 0 or h - y <= 0:
+                continue
 
-            mask, binary = model.forward(faceRegion)
-            res = torch.mean(mask).item()
-            # res = binary.item()
-            print(res)
+            try:
+                faceRegion = img[y-20:h+20, x-20:w+20]
+                faceRegion = cv.cvtColor(faceRegion, cv.COLOR_BGR2RGB)
+                # print(os.getcwd())
+                # cv.imwrite('./test.png', faceRegion)
+                # cv.imshow('Test', faceRegion)
 
-            # cv.putText(img, 'Confidence_{:.2f}'.format(res),
-            #            (x, y), cv.FONT_HERSHEY_DUPLEX, 2, (0, 255, 0), 2, cv.LINE_8)
+                faceRegion = tfms(faceRegion)
+                faceRegion = faceRegion.unsqueeze(0)
 
-            if res < 0.6:
-                cv.rectangle(img, (x, y), (x + w, y + h), (0, 0, 255), 2)
-                cv.putText(img, 'Fake_{:.2f}'.format(res), (x+w//3, y + h + 30),
-                           cv.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255))
-            else:
-                cv.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
-                cv.putText(img, 'Real_{:.2f}'.format(res), (x+w//3, y + h + 30),
-                           cv.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0))
+                # mask, binary = model.forward(faceRegion)
+                mask, binary = model.forward(faceRegion)
+                res = torch.mean(mask).item()
+                # res = binary.item()
+                print(res)
 
-        # out.write(img)
+                if res < 0.6:
+                    cv.rectangle(img, (x, y), (w, h), (0, 0, 255), 2)
+                    cv.putText(img, 'Fake_{:.2f}'.format(res), (x, y - 30),
+                               cv.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255))
+                else:
+                    cv.rectangle(img, (x, y), (w, h), (0, 255, 0), 2)
+                    cv.putText(img, 'Real_{:.2f}'.format(res), (x, y - 30),
+                               cv.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0))
+            except Exception:
+                continue
+
         cv.imshow('Deep Pixel-wise Binary Supervision Anti-Spoofing', img)
 
 camera.release()
-# out.release()
 cv.destroyAllWindows()
