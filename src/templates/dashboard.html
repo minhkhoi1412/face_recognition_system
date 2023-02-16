@@ -1,0 +1,31 @@
+{% block body %}
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/bootstrap.css') }}">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+
+</head>
+<body>
+    {% if session.logged_in %}
+    <h1>YOU ARE LOGGED IN  !!!</h1>
+    <form action="/logout" method="POST">
+        <input type="submit" value="Log Out" >
+    </form> 
+    {% else %}
+    <h1>YOU ARE NOT LOGIN !!!</h1>
+    <a href="/" class="btn btn-success">Log In</a>
+{% endif %}
+</body>
+</html>
+
+{% endblock %} 
