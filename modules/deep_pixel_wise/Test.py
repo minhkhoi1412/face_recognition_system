@@ -55,6 +55,7 @@ while cv.waitKey(1) & 0xFF != ord('q'):
                 faceRegion = faceRegion.unsqueeze(0)
 
                 mask, binary = model.forward(faceRegion)
+                print(mask)
                 res = torch.mean(mask).item()
                 # res = binary.item()
                 print(res)
